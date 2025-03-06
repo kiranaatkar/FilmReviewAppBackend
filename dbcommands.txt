@@ -1,0 +1,14 @@
+psql -U postgres
+CREATE DATABASE film_review;
+CREATE USER film_admin WITH ENCRYPTED PASSWORD 'erutbfcy1!';
+GRANT ALL PRIVILEGES ON DATABASE film_review TO film_admin;
+
+
+
+psql -U film_admin -d film_review
+CREATE TABLE films (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  year INT NOT NULL,
+  poster_url TEXT
+);
