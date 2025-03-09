@@ -32,6 +32,7 @@ CREATE TABLE rating (
 CREATE TABLE rating_point (
     id SERIAL PRIMARY KEY,
     rating_id INT REFERENCES rating(id) ON DELETE CASCADE,
+    point_index INT NOT NULL,
     x FLOAT NOT NULL,
     y FLOAT NOT NULL
 );
@@ -56,41 +57,41 @@ INSERT INTO rating (user_id, film_id) VALUES
     (2, 3);
 
 -- Insert dummy rating points
-INSERT INTO rating_point (rating_id, x, y) VALUES
+INSERT INTO rating_point (rating_id, point_index, x, y) VALUES
     -- Rating for user1, film LEG
-    (1, 20, 257),
-    (1, 67.5, 295),
-    (1, 115, 152),
-    (1, 210, 200),
-    (1, 305, 95),
-    (1, 352.5, 266),
-    (1, 400, 152), 
+    (1, 0, 20, 257),
+    (1, 1, 67.5, 295),
+    (1, 2, 115, 152),
+    (1, 3, 210, 200),
+    (1, 4, 305, 95),
+    (1, 5, 352.5, 266),
+    (1, 6, 400, 152), 
 
     -- Rating for user1, film Matrix
-    (2, 20, 257),
-    (2, 67.5, 295),
-    (2, 115, 152),
-    (2, 210, 200),
-    (2, 305, 95),
-    (2, 352.5, 266),
-    (2, 400, 152),
+    (2, 0, 20, 257),
+    (2, 1, 67.5, 295),
+    (2, 2, 115, 152),
+    (2, 3, 210, 200),
+    (2, 4, 305, 95),
+    (2, 5, 352.5, 266),
+    (2, 6, 400, 152),
 
     -- Rating for user2, film LEG
-    (3, 20, 257),
-    (3, 67.5, 295),
-    (3, 115, 152),
-    (3, 210, 200),
-    (3, 305, 95),
-    (3, 352.5, 266),
-    (3, 400, 152),
+    (3, 0, 20, 0),
+    (3, 1, 67.5, 0),
+    (3, 2, 115, 0),
+    (3, 3, 210, 0),
+    (3, 4, 305, 0),
+    (3, 5, 352.5, 0),
+    (3, 6, 400, 0),
 
     -- Rating for user2, film Interstellar
-    (4, 20, 257),
-    (4, 67.5, 295),
-    (4, 115, 152),
-    (4, 210, 200),
-    (4, 305, 95),
-    (4, 352.5, 266),
-    (4, 400, 152);
+    (4, 0, 20, 257),
+    (4, 1, 67.5, 295),
+    (4, 2, 115, 152),
+    (4, 3, 210, 200),
+    (4, 4, 305, 95),
+    (4, 5, 352.5, 266),
+    (4, 6, 400, 152);
 
 --psql -U film_admin -d film_review -f setupdb.sql

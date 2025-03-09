@@ -4,7 +4,7 @@ const setupDB = async () => {
   try {
     // Create "films" table if it doesn't exist
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS films (
+      CREATE TABLE IF NOT EXISTS film (
         id SERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
         year INT NOT NULL,

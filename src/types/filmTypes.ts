@@ -4,10 +4,18 @@ export interface Film {
     year: number;
     posterUrl: string;
   }
+
+  export type Rating = {
+    id?: number;
+    userId: number;
+    filmId: number;
+    points: RatingPoint[];
+  }
   
-  export interface FilmTitle {
-    id: number;
-    title: string;
-    year: number;
+  export interface RatingPoint {
+    id?: number;
+    point_index: number;
+    x: number;
+    y: number;
   }
   
