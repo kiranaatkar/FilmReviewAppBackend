@@ -19,7 +19,7 @@ export const getFilmByTitle = async (req: Request, res: Response) => {
   try {
     const film = await FilmService.getFilm(title);
     if (!film) {
-      return res
+      res
         .status(StatusCodes.NOT_FOUND)
         .json({ error: `Film with title "${title}" not found` });
     }
@@ -37,14 +37,14 @@ export const postRating = async (req: Request, res: Response) => {
   const rating = req.body?.rating;
   try {
     if (!rating) {
-      return res
+      res
         .status(StatusCodes.BAD_REQUEST)
         .json({ error: "Rating is required" });
     }
 
     const film = await FilmService.getFilm(rating.filmId);
     if (!film) {
-      return res
+      res
         .status(StatusCodes.NOT_FOUND)
         .json({ error: `Film with ID ${rating.filmId} not found` });
     }
@@ -68,7 +68,7 @@ export const getUserRating = async (req: Request, res: Response) => {
     );
   
     if (!rating) {
-      return res
+      res
         .status(404)
         .json({
           error: `No rating found for film ID ${filmId} by user ID ${userId}`,
