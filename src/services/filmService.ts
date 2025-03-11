@@ -8,7 +8,10 @@ class FilmService {
   }
 
   static async getFilm(title: string): Promise<Film | null> {
-    const { rows } = await pool.query<Film>("SELECT * FROM film WHERE title = $1", [title]);
+    const { rows } = await pool.query<Film>(
+      "SELECT * FROM film WHERE title = $1",
+      [title]
+    );
     return rows[0] || null;
   }
 
@@ -16,12 +19,20 @@ class FilmService {
     try {
       // get existing rating if it exists, or create a new one
       let ratingId: number | null = null;
-      const existingRating: Rating | null = await FilmService.getUserRating(rating.userId, rating.filmId);
+      const existingRating: Rating | null = await FilmService.getUserRating(
+        rating.userId,
+        rating.filmId
+      );
       if (existingRating?.id) {
-        await pool.query("DELETE FROM rating_point WHERE rating_id = $1", [existingRating.id]);
+        // update updated_at timestamp, delete existing points
+        await pool.query("UPDATE rating SET updated_at = NOW() WHERE id = $1", [
+          existingRating.id,
+        ]);
+        await pool.query("DELETE FROM rating_point WHERE rating_id = $1", [
+          existingRating.id,
+        ]);
         ratingId = existingRating.id;
-      }
-      else {
+      } else {
         const { rows } = await pool.query<{ id: number }>(
           "INSERT INTO rating (user_id, film_id) VALUES ($1, $2) RETURNING id",
           [rating.userId, rating.filmId]
@@ -44,26 +55,29 @@ class FilmService {
     }
   }
 
-  static async getUserRating(userId: number, filmId: number): Promise<Rating | null> {
+  static async getUserRating(
+    userId: number,
+    filmId: number
+  ): Promise<Rating | null> {
     try {
-      const { rows } = await pool.query<Rating>("SELECT * FROM rating WHERE user_id = $1 AND film_id = $2", [
-        userId,
-        filmId,
-      ]);
+      const { rows } = await pool.query<Rating>(
+        "SELECT * FROM rating WHERE user_id = $1 AND film_id = $2",
+        [userId, filmId]
+      );
       if (rows.length === 0) {
         return null;
       }
-  
+
       const rating = rows[0];
-      const { rows: points } = await pool.query<RatingPoint>("SELECT x, y, point_index FROM rating_point WHERE rating_id = $1", [
-        rating.id,
-      ]);
+      const { rows: points } = await pool.query<RatingPoint>(
+        "SELECT x, y, point_index FROM rating_point WHERE rating_id = $1 ORDER BY point_index",
+        [rating.id]
+      );
       rating.points = points;
       return rating;
-    }
-    catch (error: any) {
+    } catch (error: any) {
       console.error("Error getting user rating:", error);
-      return null
+      return null;
     }
   }
 
@@ -74,28 +88,28 @@ class FilmService {
     );
     const groupedPoints = rows.reduce((acc: any, row: any) => {
       if (!acc[row.point_index]) {
-        acc[row.point_index] = {x: 0, y: 0, count: 0};
+        acc[row.point_index] = { x: 0, y: 0, count: 0 };
       }
       acc[row.point_index].x += row.x;
       acc[row.point_index].y += row.y;
       acc[row.point_index].count += 1;
       return acc;
     }, {});
-    const averagePoints = Object.values(groupedPoints).map((group: any, index: number) => ({
-      point_index: index,
-      x: group.x / group.count,
-      y: group.y / group.count,
-    }));
+    const averagePoints = Object.values(groupedPoints)
+      .map((group: any, index: number) => ({
+        point_index: index,
+        x: group.x / group.count,
+        y: group.y / group.count,
+      }))
+      .sort((a: any, b: any) => a.point_index - b.point_index);
     return averagePoints;
   }
-
 
   // testing methods
   static async getAllRatings(): Promise<Rating[]> {
     const { rows: ratings } = await pool.query<Rating>("SELECT * FROM rating");
     return ratings;
   }
-  
 }
 
 export default FilmService;
