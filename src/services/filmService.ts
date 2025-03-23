@@ -2,6 +2,7 @@ import { Film, Rating, RatingPoint } from "../types/filmTypes";
 import pool from "../config/db";
 
 class FilmService {
+
   static async getFilms(): Promise<Film[]> {
     const { rows } = await pool.query<Film>("SELECT * FROM film");
     return rows;
@@ -82,28 +83,53 @@ class FilmService {
   }
 
   static async getAverageRating(filmId: number): Promise<RatingPoint[]> {
-    const { rows } = await pool.query<{ avg: string }>(
-      "SELECT * FROM rating_point WHERE rating_id IN (SELECT id FROM rating WHERE film_id = $1)",
-      [filmId]
-    );
-    const groupedPoints = rows.reduce((acc: any, row: any) => {
-      if (!acc[row.point_index]) {
-        acc[row.point_index] = { x: 0, y: 0, count: 0 };
-      }
-      acc[row.point_index].x += row.x;
-      acc[row.point_index].y += row.y;
-      acc[row.point_index].count += 1;
-      return acc;
-    }, {});
-    const averagePoints = Object.values(groupedPoints)
-      .map((group: any, index: number) => ({
-        point_index: index,
-        x: group.x / group.count,
-        y: group.y / group.count,
-      }))
-      .sort((a: any, b: any) => a.point_index - b.point_index);
-    return averagePoints;
+    try {
+      const { rows } = await pool.query<{
+        point_index: number;
+        avg_x: number;
+        avg_y: number;
+      }>(
+        `SELECT point_index, AVG(x) AS avg_x, AVG(y) AS avg_y 
+         FROM rating_point 
+         WHERE rating_id IN (SELECT id FROM rating WHERE film_id = $1) 
+         GROUP BY point_index 
+         ORDER BY point_index`,
+        [filmId]
+      );
+
+      return rows.map((row) => ({
+        point_index: row.point_index,
+        x: parseFloat(row.avg_x.toFixed(2)),
+        y: parseFloat(row.avg_y.toFixed(2)),
+      }));
+    } catch (error: any) {
+      console.error("Error getting average rating:", error);
+      return [];
+    }
   }
+  // static async getAverageRating(filmId: number): Promise<RatingPoint[]> {
+  //   const { rows } = await pool.query<{ avg: string }>(
+  //     "SELECT * FROM rating_point WHERE rating_id IN (SELECT id FROM rating WHERE film_id = $1)",
+  //     [filmId]
+  //   );
+  //   const groupedPoints = rows.reduce((acc: any, row: any) => {
+  //     if (!acc[row.point_index]) {
+  //       acc[row.point_index] = { x: 0, y: 0, count: 0 };
+  //     }
+  //     acc[row.point_index].x += row.x;
+  //     acc[row.point_index].y += row.y;
+  //     acc[row.point_index].count += 1;
+  //     return acc;
+  //   }, {});
+  //   const averagePoints = Object.values(groupedPoints)
+  //     .map((group: any, index: number) => ({
+  //       point_index: index,
+  //       x: group.x / group.count,
+  //       y: group.y / group.count,
+  //     }))
+  //     .sort((a: any, b: any) => a.point_index - b.point_index);
+  //   return averagePoints;
+  // }
 
   // testing methods
   static async getAllRatings(): Promise<Rating[]> {

@@ -1,3 +1,10 @@
+export type User = {
+    id: number;
+    username: string;
+    hashedPassword: string;
+    createdAt: Date;
+  }
+
 export interface Film {
     id: number;
     title: string;
