@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import setupDB from "./config/setup"; 
+import setupDB from "./config/setup";
 import filmRoutes from "./routes/filmRoutes";
 import userRoutes from "./routes/userRoutes";
 
@@ -8,7 +8,7 @@ setupDB(); // Ensure database is ready before starting the server
 
 dotenv.config();
 
-const cors = require('cors');
+const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 8080;
 

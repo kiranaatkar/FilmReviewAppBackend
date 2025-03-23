@@ -37,12 +37,10 @@ export const getFilmByTitle = async (req: Request, res: Response) => {
 export const postRating = async (req: Request, res: Response) => {
   const rating = req.body?.rating;
   if (!rating) {
-    res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ error: "Rating is required" });
+    res.status(StatusCodes.BAD_REQUEST).json({ error: "Rating is required" });
     return;
   }
-  
+
   try {
     const result = await FilmService.postRating(rating);
     res.status(StatusCodes.CREATED).json(result);
@@ -61,16 +59,14 @@ export const getUserRating = async (req: Request, res: Response) => {
       parseInt(userId),
       parseInt(filmId)
     );
-  
+
     if (!rating) {
-      res
-        .status(404)
-        .json({
-          error: `No rating found for film ID ${filmId} by user ID ${userId}`,
-        });
+      res.status(404).json({
+        error: `No rating found for film ID ${filmId} by user ID ${userId}`,
+      });
       return;
     }
-  
+
     res.json(rating);
   } catch (error) {
     console.error("Error fetching film:", error);

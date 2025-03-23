@@ -2,7 +2,6 @@ import { Film, Rating, RatingPoint } from "../types/filmTypes";
 import pool from "../config/db";
 
 class FilmService {
-
   static async getFilms(): Promise<Film[]> {
     const { rows } = await pool.query<Film>("SELECT * FROM film");
     return rows;

@@ -1,11 +1,11 @@
 import express from "express";
-import { 
-    getFilms, 
-    getFilmByTitle, 
-    postRating, 
-    getUserRating, 
-    getAverageRating, 
-    getAllRatings,
+import {
+  getFilms,
+  getFilmByTitle,
+  postRating,
+  getUserRating,
+  getAverageRating,
+  getAllRatings,
 } from "../controllers/filmController";
 
 const router = express.Router();
