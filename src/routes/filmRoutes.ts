@@ -19,6 +19,41 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /api/films/create:
+ *   post:
+ *     summary: Create a film
+ *     tags: [Films]
+ *     description: Create a film to be rated.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the film
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *               points:
+ *                 type: array
+ *                 items:
+ *                   type: number
+ *     responses:
+ *       201:
+ *         description: Rating submitted successfully
+ *       400:
+ *         description: Invalid input
+ */
+router.post("/:id/rate", postRating);
+
+/**
+ * @swagger
  * /api/films:
  *   get:
  *     summary: Get all films
