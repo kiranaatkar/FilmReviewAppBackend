@@ -4,7 +4,10 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: "postgresql://film_admin:VlODn68LPdrR9a0j66zp2G5fe4BQ3Sqw@dpg-cvo4u9emcj7s73ftpa0g-a.oregon-postgres.render.com/film_peak_reviews",//process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // This is needed for most Render setups
+  },
 });
 
 pool

@@ -96,3 +96,4 @@ INSERT INTO rating_point (rating_id, point_index, x, y) VALUES
     (4, 6, 400, 152);
 
 --psql -U film_admin -d film_review -f setupdb.sql
+--psql "postgresql://film_admin:VlODn68LPdrR9a0j66zp2G5fe4BQ3Sqw@dpg-cvo4u9emcj7s73ftpa0g-a.oregon-postgres.render.com/film_peak_reviews" -f setupdb.sql
