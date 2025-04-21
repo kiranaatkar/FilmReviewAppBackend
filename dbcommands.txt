@@ -1,6 +1,6 @@
 psql -U postgres
 CREATE DATABASE film_review;
-CREATE USER film_admin WITH ENCRYPTED PASSWORD 'erutbfcy1!';
+CREATE USER film_admin WITH ENCRYPTED PASSWORD '<password>';
 GRANT ALL PRIVILEGES ON DATABASE film_review TO film_admin;
 
 
