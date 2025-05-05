@@ -10,13 +10,13 @@ const options: Options = {
     },
     servers: [
       {
-        url: "http://localhost:8080", // TODO: Change when deploying
+        url: "https://filmreviewappbackend.onrender.com", // TODO: Change when deploying
       },
     ],
   },
-  apis: ["./src/routes/*.ts"], // If running in development
+  //apis: ["./src/routes/*.ts"], // If running in development
   // OR
-  //apis: ["./dist/routes/*.js"], // If running in production (compiled version)
+  apis: ["./dist/routes/*.js"], // If running in production (compiled version)
 };
 
 const swaggerSpec = swaggerJsdoc(options);
