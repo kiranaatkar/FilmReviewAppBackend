@@ -5,12 +5,32 @@ export type User = {
   createdAt: Date;
 };
 
+export interface Genre {
+  id: number;
+  name: string;
+}
+
+export interface Actor {
+  id: number;
+  name: string;
+}
+
+export interface Director {
+  id: number;
+  name: string;
+}
+
 export interface Film {
   id: number;
   title: string;
   year: number;
   posterUrl: string;
+  runtime: number;
+  genres: Genre[];
+  directors: Director[];
+  actors: Actor[];
 }
+
 
 export type Rating = {
   id?: number;
