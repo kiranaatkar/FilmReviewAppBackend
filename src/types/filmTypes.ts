@@ -29,6 +29,7 @@ export interface Film {
   genres: Genre[];
   directors: Director[];
   actors: Actor[];
+  createdAt: Date;
 }
 
 

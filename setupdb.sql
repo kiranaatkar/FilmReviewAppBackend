@@ -38,7 +38,8 @@ CREATE TABLE film (
     title VARCHAR(255) NOT NULL,
     year INT NOT NULL,
     poster_url VARCHAR(255),
-    runtime INT NOT NULL
+    runtime INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE film_genre (
@@ -81,11 +82,11 @@ INSERT INTO users (username, hashed_password) VALUES
   ('user2', 'hashedpassword2');
 
 -- Insert dummy films
-INSERT INTO film (title, year, poster_url, runtime) VALUES
-  ('Lighthouse', 2025, 'https://www.posterist.co.uk/cdn/shop/files/lighthouse-movie-poster-v2-01.jpg?crop=center&height=723&v=1698400965&width=723', 200),
-  ('Matrix', 1999, 'https://i.ebayimg.com/images/g/ewwAAOSwpEVhZKHe/s-l1200.jpg', 200),
-  ('Nosferatu', 2024, 'https://i.ebayimg.com/images/g/bxEAAOSwx-9WxftL/s-l400.jpg', 200),
-  ('The Gorge', 2025, 'https://image.tmdb.org/t/p/original/4NGWdYzFMzVIgrIzO2rpZzUYWQJ.jpg', 200);
+INSERT INTO film (title, year, poster_url, runtime, created_at) VALUES
+  ('Lighthouse', 2025, 'https://www.posterist.co.uk/cdn/shop/files/lighthouse-movie-poster-v2-01.jpg?crop=center&height=723&v=1698400965&width=723', 200, NOW()),
+  ('Matrix', 1999, 'https://i.ebayimg.com/images/g/ewwAAOSwpEVhZKHe/s-l1200.jpg', 200, NOW()),
+  ('Nosferatu', 2024, 'https://i.ebayimg.com/images/g/bxEAAOSwx-9WxftL/s-l400.jpg', 200, NOW() - INTERVAL '14 days'),
+  ('The Gorge', 2025, 'https://image.tmdb.org/t/p/original/4NGWdYzFMzVIgrIzO2rpZzUYWQJ.jpg', 200, NOW() - INTERVAL '14 days');
 
 -- Insert genres
 INSERT INTO genre (name) VALUES

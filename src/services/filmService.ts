@@ -3,7 +3,6 @@ import pool from "../config/db";
 
 class FilmService {
 static async getFilms(): Promise<Film[]> {
-  console.log("Executing getFilms query");
     const { rows } = await pool.query<Film>(`
       SELECT
         f.id,
@@ -11,6 +10,7 @@ static async getFilms(): Promise<Film[]> {
         f.year,
         f.poster_url AS "posterUrl",
         f.runtime,
+        f.created_at AS "createdAt",
         COALESCE(
           json_agg(DISTINCT jsonb_build_object('id', g.id, 'name', g.name))
           FILTER (WHERE g.id IS NOT NULL),
@@ -36,7 +36,6 @@ static async getFilms(): Promise<Film[]> {
       GROUP BY f.id
       ORDER BY f.id;
     `);
-
     return rows;
   }
 

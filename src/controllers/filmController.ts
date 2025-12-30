@@ -4,7 +4,6 @@ import { StatusCodes } from "http-status-codes";
 
 export const getFilms = async (req: Request, res: Response) => {
   try {
-    console.log("Fetching all films");
     const films = await FilmService.getFilms();
     res.json(films);
   } catch (error) {
