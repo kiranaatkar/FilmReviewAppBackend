@@ -151,3 +151,6 @@ INSERT INTO rating_point (rating_id, point_index, x, y) VALUES
   (3, 3, 210, 0), (3, 4, 305, 0), (3, 5, 352.5, 0), (3, 6, 400, 0),
   (4, 0, 20, 257), (4, 1, 67.5, 295), (4, 2, 115, 152),
   (4, 3, 210, 200), (4, 4, 305, 95), (4, 5, 352.5, 266), (4, 6, 400, 152);
+
+
+-- psql -U film_admin -d film_review -f setupdb.sql

@@ -49,6 +49,7 @@ static async getFilms(): Promise<Film[]> {
         f.year,
         f.poster_url AS "posterUrl",
         f.runtime,
+        f.created_at AS "createdAt",
         COALESCE(
           json_agg(DISTINCT jsonb_build_object('id', g.id, 'name', g.name))
           FILTER (WHERE g.id IS NOT NULL),
