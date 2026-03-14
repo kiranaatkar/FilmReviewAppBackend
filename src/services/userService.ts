@@ -8,13 +8,14 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 class UserService {
   static async createUser(
     username: string,
+    email: string,
     password: string
   ): Promise<string | { token: string }> {
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
       const { rows } = await pool.query(
-        "INSERT INTO users (username, hashed_password) VALUES ($1, $2) RETURNING id",
-        [username, hashedPassword]
+        "INSERT INTO users (username, email, hashed_password) VALUES ($1, $2, $3) RETURNING id",
+        [username, email, hashedPassword]
       );
 
       if (rows.length === 0) {

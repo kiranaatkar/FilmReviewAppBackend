@@ -14,6 +14,7 @@ DROP TABLE IF EXISTS actor CASCADE;
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
     hashed_password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -77,9 +78,9 @@ CREATE TABLE rating_point (
 );
 
 -- Insert dummy users
-INSERT INTO users (username, hashed_password) VALUES
-  ('user1', 'hashedpassword1'),
-  ('user2', 'hashedpassword2');
+INSERT INTO users (username, email, hashed_password) VALUES
+  ('user1', 'user1@example.com', 'hashedpassword1'),
+  ('user2', 'user2@example.com', 'hashedpassword2');
 
 -- Insert dummy films
 INSERT INTO film (title, year, poster_url, runtime, created_at) VALUES

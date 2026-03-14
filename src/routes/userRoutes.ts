@@ -43,6 +43,8 @@ router.get("/all", getAllUsers);
  *             properties:
  *               username:
  *                 type: string
+ *               email:
+ *                 type: string
  *               password:
  *                 type: string
  *     responses:

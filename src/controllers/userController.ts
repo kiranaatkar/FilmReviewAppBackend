@@ -3,16 +3,16 @@ import UserService from "../services/userService";
 import { StatusCodes } from "http-status-codes";
 
 export const createUser = async (req: Request, res: Response) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
+  const { username, email, password } = req.body;
+  if (!username || !email || !password) {
     res
       .status(StatusCodes.BAD_REQUEST)
-      .json({ error: "Name and password is required" });
+      .json({ error: "Name, email, and password are required" });
     return;
   }
 
   try {
-    const user = await UserService.createUser(username, password);
+    const user = await UserService.createUser(username, email, password);
     res.status(StatusCodes.CREATED).json(user);
   } catch (error) {
     console.error("Error creating user:", error);
