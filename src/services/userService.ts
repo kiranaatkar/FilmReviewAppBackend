@@ -31,33 +31,40 @@ class UserService {
     }
   }
 
-  static async signInUser(
-    username: string,
-    password: string
-  ): Promise<string | { token: string }> {
-    try {
-      const { rows } = await pool.query<{
-        id: number;
-        hashed_password: string;
-      }>("SELECT id, hashed_password FROM users WHERE username = $1", [
-        username,
-      ]);
-      if (rows.length === 0) {
-        return "User not found";
-      }
+static async signInUser(
+  identifier: string,
+  password: string
+): Promise<string | { token: string }> {
+  try {
+    const { rows } = await pool.query<{
+      id: number;
+      username: string;
+      hashed_password: string;
+    }>(
+      `SELECT id, username, hashed_password 
+       FROM users 
+       WHERE username = $1 OR email = $1`,
+      [identifier]
+    );
 
-      const user = rows[0];
-      const match = await bcrypt.compare(password, user.hashed_password);
-      if (!match) {
-        return "Invalid password";
-      }
-      const token = this.createToken(user.id, username);
-      return { token };
-    } catch (error: any) {
-      console.error("Error logging in:", error);
-      return `Error: ${error.message}`;
+    if (rows.length === 0) {
+      return "User not found";
     }
+
+    const user = rows[0];
+    const match = await bcrypt.compare(password, user.hashed_password);
+
+    if (!match) {
+      return "Invalid password";
+    }
+
+    const token = this.createToken(user.id, user.username);
+    return { token };
+  } catch (error: any) {
+    console.error("Error logging in:", error);
+    return `Error: ${error.message}`;
   }
+}
 
   static createToken(userId: number, username: string): string {
     return jwt.sign({ userId, username }, JWT_SECRET, { expiresIn: "7d" });

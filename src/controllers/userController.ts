@@ -23,16 +23,19 @@ export const createUser = async (req: Request, res: Response) => {
 };
 
 export const signInUser = async (req: Request, res: Response) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ error: "Name and password is required" });
+  const { identifier, password } = req.body;
+
+  console.log("Sign-in request received with identifier:", identifier, "and password:", password);
+
+  if (!identifier || !password) {
+    res.status(StatusCodes.BAD_REQUEST).json({
+      error: "Email/username and password are required",
+    });
     return;
   }
 
   try {
-    const user = await UserService.signInUser(username, password);
+    const user = await UserService.signInUser(identifier, password);
     res.json(user);
   } catch (error) {
     console.error("Error logging in:", error);
