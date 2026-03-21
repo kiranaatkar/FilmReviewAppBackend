@@ -21,26 +21,27 @@ CREATE TABLE users (
 
 CREATE TABLE genre (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL
+    name VARCHAR(100) UNIQUE NOT NULL
 );
 
 CREATE TABLE actor (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL
+    name VARCHAR(255) UNIQUE NOT NULL
 );
 
 CREATE TABLE director (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL
+    name VARCHAR(255) UNIQUE NOT NULL
 );
 
 CREATE TABLE film (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     year INT NOT NULL,
-    poster_url VARCHAR(255),
+    poster_url VARCHAR(500),
     runtime INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_film_title_year UNIQUE (title, year)
 );
 
 CREATE TABLE film_genre (
@@ -66,7 +67,8 @@ CREATE TABLE rating (
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
     film_id INT REFERENCES film(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_user_film_rating UNIQUE (user_id, film_id)
 );
 
 CREATE TABLE rating_point (
@@ -74,7 +76,8 @@ CREATE TABLE rating_point (
     rating_id INT REFERENCES rating(id) ON DELETE CASCADE,
     point_index INT NOT NULL,
     x FLOAT NOT NULL,
-    y FLOAT NOT NULL
+    y FLOAT NOT NULL,
+    CONSTRAINT unique_rating_point_index UNIQUE (rating_id, point_index)
 );
 
 -- Insert dummy users
@@ -152,6 +155,5 @@ INSERT INTO rating_point (rating_id, point_index, x, y) VALUES
   (3, 3, 210, 0), (3, 4, 305, 0), (3, 5, 352.5, 0), (3, 6, 400, 0),
   (4, 0, 20, 257), (4, 1, 67.5, 295), (4, 2, 115, 152),
   (4, 3, 210, 200), (4, 4, 305, 95), (4, 5, 352.5, 266), (4, 6, 400, 152);
-
 
 -- psql -U film_admin -d film_review -f setupdb.sql

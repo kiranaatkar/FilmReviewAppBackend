@@ -6,6 +6,7 @@ import {
   getUserRating,
   getAverageRating,
   getAllRatings,
+  createFilm,
 } from "../controllers/filmController";
 
 const router = express.Router();
@@ -19,41 +20,6 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/films/create:
- *   post:
- *     summary: Create a film
- *     tags: [Films]
- *     description: Create a film to be rated.
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: The ID of the film
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               userId:
- *                 type: integer
- *               points:
- *                 type: array
- *                 items:
- *                   type: number
- *     responses:
- *       201:
- *         description: Rating submitted successfully
- *       400:
- *         description: Invalid input
- */
-router.post("/:id/rate", postRating);
-
-/**
- * @swagger
  * /api/films:
  *   get:
  *     summary: Get all films
@@ -64,6 +30,38 @@ router.post("/:id/rate", postRating);
  *         description: Successfully retrieved films
  */
 router.get("/", getFilms);
+
+/**
+ * @swagger
+ * /api/films:
+ *   post:
+ *     summary: Create a film by fetching metadata
+ *     tags: [Films]
+ *     description: Creates a new film by fetching metadata from an external movie API using title and optional year
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: The Matrix
+ *               year:
+ *                 type: integer
+ *                 example: 1999
+ *     responses:
+ *       201:
+ *         description: Film created successfully
+ *       400:
+ *         description: Invalid input or metadata not found
+ *       409:
+ *         description: Film already exists
+ */
+router.post("/", createFilm);
 
 /**
  * @swagger

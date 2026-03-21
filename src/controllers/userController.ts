@@ -24,9 +24,6 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const signInUser = async (req: Request, res: Response) => {
   const { identifier, password } = req.body;
-
-  console.log("Sign-in request received with identifier:", identifier, "and password:", password);
-
   if (!identifier || !password) {
     res.status(StatusCodes.BAD_REQUEST).json({
       error: "Email/username and password are required",

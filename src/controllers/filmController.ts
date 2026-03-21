@@ -14,6 +14,48 @@ export const getFilms = async (req: Request, res: Response) => {
   }
 };
 
+export const createFilm = async (req: Request, res: Response) => {
+  const { title, year } = req.body;
+
+  if (!title || typeof title !== "string") {
+    res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ error: "title is required and must be a string" });
+    return;
+  }
+
+  if (year !== undefined && typeof year !== "number") {
+    res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ error: "year must be a number if provided" });
+    return;
+  }
+
+  try {
+    const film = await FilmService.createFilmFromMetadata(title, year);
+
+    if (!film) {
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ error: "Could not fetch film metadata" });
+      return;
+    }
+
+    res.status(StatusCodes.CREATED).json(film);
+  } catch (error: any) {
+    console.error("Error creating film:", error);
+
+    if (error.message === "Film already exists") {
+      res.status(StatusCodes.CONFLICT).json({ error: error.message });
+      return;
+    }
+
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: "Internal server error" });
+  }
+};
+
 export const getFilmByTitle = async (req: Request, res: Response) => {
   const { title } = req.params;
   try {
