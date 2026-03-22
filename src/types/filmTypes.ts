@@ -47,3 +47,10 @@ export interface RatingPoint {
   x: number;
   y: number;
 }
+
+export type FilmPreview = {
+  filmId: number;
+  average: RatingPoint[];
+  userRating: RatingPoint[];
+  filmPeak: RatingPoint[];
+};

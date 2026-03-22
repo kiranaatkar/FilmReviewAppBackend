@@ -38,7 +38,7 @@ CREATE TABLE film (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     year INT NOT NULL,
-    poster_url VARCHAR(500),
+    poster_url VARCHAR(255),
     runtime INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT unique_film_title_year UNIQUE (title, year)
@@ -79,6 +79,12 @@ CREATE TABLE rating_point (
     y FLOAT NOT NULL,
     CONSTRAINT unique_rating_point_index UNIQUE (rating_id, point_index)
 );
+
+CREATE INDEX idx_film_title ON film(title);
+CREATE INDEX idx_film_title_year ON film(title, year);
+CREATE INDEX idx_rating_user_film ON rating(user_id, film_id);
+CREATE INDEX idx_rating_film ON rating(film_id);
+CREATE INDEX idx_rating_point_rating_id ON rating_point(rating_id);
 
 -- Insert dummy users
 INSERT INTO users (username, email, hashed_password) VALUES

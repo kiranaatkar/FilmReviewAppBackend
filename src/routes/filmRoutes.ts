@@ -7,6 +7,7 @@ import {
   getAverageRating,
   getAllRatings,
   createFilm,
+  getFilmPreviews,
 } from "../controllers/filmController";
 
 const router = express.Router();
@@ -65,60 +66,47 @@ router.post("/", createFilm);
 
 /**
  * @swagger
- * /api/films/{title}:
+ * /api/films/ratings/all:
  *   get:
- *     summary: Get a film by title
+ *     summary: Get all ratings
  *     tags: [Films]
- *     description: Fetches details of a film using its title
- *     parameters:
- *       - in: path
- *         name: title
- *         required: true
- *         schema:
- *           type: string
- *         description: The title of the film
+ *     description: Fetches all ratings submitted by users
  *     responses:
  *       200:
- *         description: Film details retrieved successfully
- *       404:
- *         description: Film not found
+ *         description: Successfully retrieved all ratings
  */
-router.get("/:title", getFilmByTitle);
+router.get("/ratings/all", getAllRatings);
+
 
 /**
  * @swagger
- * /api/films/{id}/rate:
- *   post:
- *     summary: Rate a film
- *     tags: [Films]
- *     description: Submit a rating for a film
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: The ID of the film
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               userId:
- *                 type: integer
- *               points:
- *                 type: array
- *                 items:
- *                   type: number
- *     responses:
- *       201:
- *         description: Rating submitted successfully
- *       400:
- *         description: Invalid input
+ * /api/films/previews:
+ *  post:
+ *    summary: Get film previews
+ *    tags: [Films]
+ *    description: Fetches previews for a list of film IDs, including average ratings, user ratings, and film peaks
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              userId:
+ *               type: integer
+ *               example: 1
+ *              filmIds:
+ *                type: array
+ *                items:
+ *                  type: integer
+ *                example: [1, 2, 3]
+ *    responses:
+ *      200:
+ *        description: Successfully retrieved film previews
+ *      400:
+ *        description: Invalid input
  */
-router.post("/:id/rate", postRating);
+router.post("/previews", getFilmPreviews);
 
 /**
  * @swagger
@@ -172,15 +160,66 @@ router.get("/:filmId/average", getAverageRating);
 
 /**
  * @swagger
- * /api/films/ratings/all:
- *   get:
- *     summary: Get all ratings
+ * /api/films/{id}/rate:
+ *   post:
+ *     summary: Rate a film
  *     tags: [Films]
- *     description: Fetches all ratings submitted by users
+ *     description: Submit a rating for a film
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the film
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *               points:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     point_index:
+ *                       type: integer
+ *                     x:
+ *                       type: number
+ *                     y:
+ *                       type: number
+ *     responses:
+ *       201:
+ *         description: Rating submitted successfully
+ *       400:
+ *         description: Invalid input
+ */
+router.post("/:id/rate", postRating);
+
+/**
+ * @swagger
+ * /api/films/{title}:
+ *   get:
+ *     summary: Get a film by title
+ *     tags: [Films]
+ *     description: Fetches details of a film using its title
+ *     parameters:
+ *       - in: path
+ *         name: title
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The title of the film
  *     responses:
  *       200:
- *         description: Successfully retrieved all ratings
+ *         description: Film details retrieved successfully
+ *       404:
+ *         description: Film not found
  */
-router.get("/ratings/all", getAllRatings);
+router.get("/:title", getFilmByTitle);
 
 export default router;

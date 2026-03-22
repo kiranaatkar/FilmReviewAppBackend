@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import FilmService from "../services/filmService";
 import { StatusCodes } from "http-status-codes";
+import { FilmPreview } from "../types/filmTypes";
 
 export const getFilms = async (req: Request, res: Response) => {
   try {
@@ -8,6 +9,39 @@ export const getFilms = async (req: Request, res: Response) => {
     res.json(films);
   } catch (error) {
     console.error("Error fetching film:", error);
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: "Internal server error" });
+  }
+};
+
+export const getFilmPreviews = async (req: Request, res: Response) => {
+  const { userId, filmIds } = req.body as {
+    userId: number;
+    filmIds: number[];
+  };
+
+  console.log("Received getFilmPreviews request with userId:", userId, "and filmIds:", filmIds);
+
+  if (Number.isNaN(userId)) {
+    res.status(StatusCodes.BAD_REQUEST).json({
+      error: "userId is required and must be a number",
+    });
+    return;
+  }
+
+  if (!Array.isArray(filmIds) || !filmIds.every((id) => Number.isInteger(id))) {
+    res.status(StatusCodes.BAD_REQUEST).json({
+      error: "filmIds must be an array of integers",
+    });
+    return;
+  }
+
+  try {
+    const previews: FilmPreview[] = await FilmService.getFilmPreviews(userId, filmIds);
+    res.status(StatusCodes.OK).json(previews);
+  } catch (error) {
+    console.error("Error fetching film previews:", error);
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "Internal server error" });
@@ -24,15 +58,21 @@ export const createFilm = async (req: Request, res: Response) => {
     return;
   }
 
-  if (year !== undefined && typeof year !== "number") {
-    res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ error: "year must be a number if provided" });
-    return;
+  let parsedYear: number | undefined = undefined;
+
+  if (year !== undefined && year !== null && year !== "") {
+    parsedYear = Number(year);
+
+    if (Number.isNaN(parsedYear)) {
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ error: "year must be a valid number if provided" });
+      return;
+    }
   }
 
   try {
-    const film = await FilmService.createFilmFromMetadata(title, year);
+    const film = await FilmService.createFilmFromMetadata(title.trim(), parsedYear);
 
     if (!film) {
       res
@@ -47,6 +87,11 @@ export const createFilm = async (req: Request, res: Response) => {
 
     if (error.message === "Film already exists") {
       res.status(StatusCodes.CONFLICT).json({ error: error.message });
+      return;
+    }
+
+    if (error.message === "OMDB_API_KEY is not configured") {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
       return;
     }
 
@@ -77,17 +122,33 @@ export const getFilmByTitle = async (req: Request, res: Response) => {
 };
 
 export const postRating = async (req: Request, res: Response) => {
-  const rating = req.body?.rating;
-  if (!rating) {
-    res.status(StatusCodes.BAD_REQUEST).json({ error: "Rating is required" });
+  const { id } = req.params;
+  const { userId, points } = req.body;
+
+  const filmId = parseInt(id, 10);
+
+  if (Number.isNaN(filmId)) {
+    res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid film id" });
+    return;
+  }
+
+  if (!userId || !Array.isArray(points)) {
+    res.status(StatusCodes.BAD_REQUEST).json({
+      error: "userId and points are required",
+    });
     return;
   }
 
   try {
-    const result = await FilmService.postRating(rating);
+    const result = await FilmService.postRating({
+      userId,
+      filmId,
+      points,
+    });
+
     res.status(StatusCodes.CREATED).json(result);
   } catch (error) {
-    console.error("Error fetching film:", error);
+    console.error("Error posting rating:", error);
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "Internal server error" });

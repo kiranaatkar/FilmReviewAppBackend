@@ -1,5 +1,6 @@
 import axios from "axios";
-import { Film, Rating, RatingPoint } from "../types/filmTypes";
+import { PoolClient } from "pg";
+import { Film, Rating, RatingPoint, FilmPreview } from "../types/filmTypes";
 import pool from "../config/db";
 
 type OmdbResponse = {
@@ -15,37 +16,41 @@ type OmdbResponse = {
 };
 
 class FilmService {
+  private static readonly filmSelect = `
+    SELECT
+      f.id,
+      f.title,
+      f.year,
+      f.poster_url AS "posterUrl",
+      f.runtime,
+      f.created_at AS "createdAt",
+      COALESCE(
+        json_agg(DISTINCT jsonb_build_object('id', g.id, 'name', g.name))
+        FILTER (WHERE g.id IS NOT NULL),
+        '[]'
+      ) AS genres,
+      COALESCE(
+        json_agg(DISTINCT jsonb_build_object('id', d.id, 'name', d.name))
+        FILTER (WHERE d.id IS NOT NULL),
+        '[]'
+      ) AS directors,
+      COALESCE(
+        json_agg(DISTINCT jsonb_build_object('id', a.id, 'name', a.name))
+        FILTER (WHERE a.id IS NOT NULL),
+        '[]'
+      ) AS actors
+    FROM film f
+    LEFT JOIN film_genre fg ON f.id = fg.film_id
+    LEFT JOIN genre g ON fg.genre_id = g.id
+    LEFT JOIN film_director fd ON f.id = fd.film_id
+    LEFT JOIN director d ON fd.director_id = d.id
+    LEFT JOIN film_actor fa ON f.id = fa.film_id
+    LEFT JOIN actor a ON fa.actor_id = a.id
+  `;
+
   static async getFilms(): Promise<Film[]> {
     const { rows } = await pool.query<Film>(`
-      SELECT
-        f.id,
-        f.title,
-        f.year,
-        f.poster_url AS "posterUrl",
-        f.runtime,
-        f.created_at AS "createdAt",
-        COALESCE(
-          json_agg(DISTINCT jsonb_build_object('id', g.id, 'name', g.name))
-          FILTER (WHERE g.id IS NOT NULL),
-          '[]'
-        ) AS genres,
-        COALESCE(
-          json_agg(DISTINCT jsonb_build_object('id', d.id, 'name', d.name))
-          FILTER (WHERE d.id IS NOT NULL),
-          '[]'
-        ) AS directors,
-        COALESCE(
-          json_agg(DISTINCT jsonb_build_object('id', a.id, 'name', a.name))
-          FILTER (WHERE a.id IS NOT NULL),
-          '[]'
-        ) AS actors
-      FROM film f
-      LEFT JOIN film_genre fg ON f.id = fg.film_id
-      LEFT JOIN genre g ON fg.genre_id = g.id
-      LEFT JOIN film_director fd ON f.id = fd.film_id
-      LEFT JOIN director d ON fd.director_id = d.id
-      LEFT JOIN film_actor fa ON f.id = fa.film_id
-      LEFT JOIN actor a ON fa.actor_id = a.id
+      ${this.filmSelect}
       GROUP BY f.id
       ORDER BY f.id;
     `);
@@ -55,35 +60,7 @@ class FilmService {
   static async getFilm(title: string): Promise<Film | null> {
     const { rows } = await pool.query<Film>(
       `
-      SELECT
-        f.id,
-        f.title,
-        f.year,
-        f.poster_url AS "posterUrl",
-        f.runtime,
-        f.created_at AS "createdAt",
-        COALESCE(
-          json_agg(DISTINCT jsonb_build_object('id', g.id, 'name', g.name))
-          FILTER (WHERE g.id IS NOT NULL),
-          '[]'
-        ) AS genres,
-        COALESCE(
-          json_agg(DISTINCT jsonb_build_object('id', d.id, 'name', d.name))
-          FILTER (WHERE d.id IS NOT NULL),
-          '[]'
-        ) AS directors,
-        COALESCE(
-          json_agg(DISTINCT jsonb_build_object('id', a.id, 'name', a.name))
-          FILTER (WHERE a.id IS NOT NULL),
-          '[]'
-        ) AS actors
-      FROM film f
-      LEFT JOIN film_genre fg ON f.id = fg.film_id
-      LEFT JOIN genre g ON fg.genre_id = g.id
-      LEFT JOIN film_director fd ON f.id = fd.film_id
-      LEFT JOIN director d ON fd.director_id = d.id
-      LEFT JOIN film_actor fa ON f.id = fa.film_id
-      LEFT JOIN actor a ON fa.actor_id = a.id
+      ${this.filmSelect}
       WHERE f.title = $1
       GROUP BY f.id;
       `,
@@ -99,35 +76,7 @@ class FilmService {
   ): Promise<Film | null> {
     const { rows } = await pool.query<Film>(
       `
-      SELECT
-        f.id,
-        f.title,
-        f.year,
-        f.poster_url AS "posterUrl",
-        f.runtime,
-        f.created_at AS "createdAt",
-        COALESCE(
-          json_agg(DISTINCT jsonb_build_object('id', g.id, 'name', g.name))
-          FILTER (WHERE g.id IS NOT NULL),
-          '[]'
-        ) AS genres,
-        COALESCE(
-          json_agg(DISTINCT jsonb_build_object('id', d.id, 'name', d.name))
-          FILTER (WHERE d.id IS NOT NULL),
-          '[]'
-        ) AS directors,
-        COALESCE(
-          json_agg(DISTINCT jsonb_build_object('id', a.id, 'name', a.name))
-          FILTER (WHERE a.id IS NOT NULL),
-          '[]'
-        ) AS actors
-      FROM film f
-      LEFT JOIN film_genre fg ON f.id = fg.film_id
-      LEFT JOIN genre g ON fg.genre_id = g.id
-      LEFT JOIN film_director fd ON f.id = fd.film_id
-      LEFT JOIN director d ON fd.director_id = d.id
-      LEFT JOIN film_actor fa ON f.id = fa.film_id
-      LEFT JOIN actor a ON fa.actor_id = a.id
+      ${this.filmSelect}
       WHERE f.title = $1 AND f.year = $2
       GROUP BY f.id;
       `,
@@ -261,10 +210,10 @@ class FilmService {
   }
 
   private static async getOrCreateGenreId(
-    client: any,
+    client: PoolClient,
     name: string
   ): Promise<number> {
-    const insertResult = await client.query(
+    const insertResult = await client.query<{ id: number }>(
       `
       INSERT INTO genre (name)
       VALUES ($1)
@@ -278,7 +227,7 @@ class FilmService {
       return insertResult.rows[0].id;
     }
 
-    const selectResult = await client.query(
+    const selectResult = await client.query<{ id: number }>(
       `SELECT id FROM genre WHERE name = $1`,
       [name]
     );
@@ -287,10 +236,10 @@ class FilmService {
   }
 
   private static async getOrCreateDirectorId(
-    client: any,
+    client: PoolClient,
     name: string
   ): Promise<number> {
-    const insertResult = await client.query(
+    const insertResult = await client.query<{ id: number }>(
       `
       INSERT INTO director (name)
       VALUES ($1)
@@ -304,7 +253,7 @@ class FilmService {
       return insertResult.rows[0].id;
     }
 
-    const selectResult = await client.query(
+    const selectResult = await client.query<{ id: number }>(
       `SELECT id FROM director WHERE name = $1`,
       [name]
     );
@@ -313,10 +262,10 @@ class FilmService {
   }
 
   private static async getOrCreateActorId(
-    client: any,
+    client: PoolClient,
     name: string
   ): Promise<number> {
-    const insertResult = await client.query(
+    const insertResult = await client.query<{ id: number }>(
       `
       INSERT INTO actor (name)
       VALUES ($1)
@@ -330,7 +279,7 @@ class FilmService {
       return insertResult.rows[0].id;
     }
 
-    const selectResult = await client.query(
+    const selectResult = await client.query<{ id: number }>(
       `SELECT id FROM actor WHERE name = $1`,
       [name]
     );
@@ -374,7 +323,7 @@ class FilmService {
       return "ok";
     } catch (error: any) {
       console.error("Error posting rating:", error);
-      return `Error: ${error.message}`;
+      throw error;
     }
   }
 
@@ -412,10 +361,10 @@ class FilmService {
         avg_x: number;
         avg_y: number;
       }>(
-        `SELECT point_index, AVG(x) AS avg_x, AVG(y) AS avg_y 
-         FROM rating_point 
-         WHERE rating_id IN (SELECT id FROM rating WHERE film_id = $1) 
-         GROUP BY point_index 
+        `SELECT point_index, AVG(x) AS avg_x, AVG(y) AS avg_y
+         FROM rating_point
+         WHERE rating_id IN (SELECT id FROM rating WHERE film_id = $1)
+         GROUP BY point_index
          ORDER BY point_index`,
         [filmId]
       );
@@ -428,6 +377,98 @@ class FilmService {
     } catch (error: any) {
       console.error("Error getting average rating:", error);
       return [];
+    }
+  }
+
+  static async getFilmPreviews(userId: number, filmIds: number[]): Promise<FilmPreview[]> {
+    if (!filmIds.length) return [];
+
+    try {
+      // 1) Average ratings
+      const { rows: averageRows } = await pool.query<{
+        film_id: number;
+        point_index: number;
+        x: string;
+        y: string;
+      }>(
+        `
+        SELECT r.film_id, rp.point_index, AVG(rp.x)::numeric(10,2) AS x, AVG(rp.y)::numeric(10,2) AS y
+        FROM rating r
+        JOIN rating_point rp ON rp.rating_id = r.id
+        WHERE r.film_id = ANY($1::int[])
+        GROUP BY r.film_id, rp.point_index
+        ORDER BY r.film_id, rp.point_index
+        `,
+        [filmIds]
+      );
+
+      // 2) User ratings
+      const { rows: userRows } = await pool.query<{
+        film_id: number;
+        point_index: number;
+        x: number;
+        y: number;
+      }>(
+        `
+        SELECT r.film_id, rp.point_index, rp.x, rp.y
+        FROM rating r
+        JOIN rating_point rp ON rp.rating_id = r.id
+        WHERE r.user_id = $1
+          AND r.film_id = ANY($2::int[])
+        ORDER BY r.film_id, rp.point_index
+        `,
+        [userId, filmIds]
+      );
+
+      // 3) Film peaks (user_id = 1 as placeholder)
+      const { rows: peakRows } = await pool.query<{
+        film_id: number;
+        point_index: number;
+        x: number;
+        y: number;
+      }>(
+        `
+        SELECT r.film_id, rp.point_index, rp.x, rp.y
+        FROM rating r
+        JOIN rating_point rp ON rp.rating_id = r.id
+        WHERE r.user_id = 1
+          AND r.film_id = ANY($1::int[])
+        ORDER BY r.film_id, rp.point_index
+        `,
+        [filmIds]
+      );
+
+      const previewMap = new Map<number, FilmPreview>();
+      for (const filmId of filmIds) {
+        previewMap.set(filmId, { filmId, average: [], userRating: [], filmPeak: [] });
+      }
+
+      averageRows.forEach((row) =>
+        previewMap.get(row.film_id)?.average.push({
+          point_index: row.point_index,
+          x: Number(row.x),
+          y: Number(row.y),
+        })
+      );
+      userRows.forEach((row) =>
+        previewMap.get(row.film_id)?.userRating.push({
+          point_index: row.point_index,
+          x: row.x,
+          y: row.y,
+        })
+      );
+      peakRows.forEach((row) =>
+        previewMap.get(row.film_id)?.filmPeak.push({
+          point_index: row.point_index,
+          x: row.x,
+          y: row.y,
+        })
+      );
+
+      return Array.from(previewMap.values());
+    } catch (error) {
+      console.error("Error getting film previews:", error);
+      throw error;
     }
   }
 
